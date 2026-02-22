@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MediatVP.Abstraction/MediatVP.Abstraction.csproj" />
+  <Project Path="MediatVP/MediatVP.csproj" />
+  <Project Path="MediatVP.Sample/MediatVP.Sample.csproj" />
+  <Project Path="MediatVP.Tests/MediatVP.Tests.csproj" />
+</Solution>
