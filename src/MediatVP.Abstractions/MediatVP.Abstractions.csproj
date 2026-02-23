@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>MediatVP.Abstractions</AssemblyName>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <PackageId>Peixoto.MediatVP.Abstractions</PackageId>
+    <Version>1.0.0</Version>
+    <Description>Abstrações puras para o MediatVP (Mediator pattern). Inclui IMediator, IRequest, IHandlerCommand etc.</Description>
+    <PackageTags>mediator;abstractions;cqrs;dotnet;clean;architecture;clean-architecture</PackageTags>
+    <License>MIT</License>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/JaoVitorPeixoto/MediatVP</RepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild> <!-- evita build automático -->
+  
+     <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/"/>
+  </ItemGroup>
+
+</Project>

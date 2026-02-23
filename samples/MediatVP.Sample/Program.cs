@@ -1,6 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using MediatVP;
-using MediatVP.Abstraction;
+using MediatVP.Abstractions;
 using MediatVP.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +12,7 @@ var mediator = serviceProvider.GetRequiredService<IMediator>();
 
 await mediator.SendAsync(new CreateUserCommand("Vitor", "vitor@gmail.com"));
 
-public record CreateUserCommand(string Name, string Email) : IRequest<bool>;
+public record CreateUserCommand(string Name, string Email) : IRequestCommand<bool>;
 
 public class CreateUserCommandHandler : IHandlerCommand<CreateUserCommand, bool>
 {

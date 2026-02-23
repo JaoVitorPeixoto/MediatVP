@@ -1,11 +1,8 @@
-using System.Net.NetworkInformation;
-using MediatVP.Abstraction;
+using MediatVP.Abstractions;
 using MediatVP.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace MediatVP.Tests.Mediator;
 
@@ -14,7 +11,8 @@ public class SendTests
     private readonly ITestOutputHelper _console;
 
 
-    public record PingCommand : IRequest<string>;
+    public record PingCommand : IRequestCommand<string>;
+    public record PingCommandVoidReturn  : IRequestCommand;
 
     public SendTests(ITestOutputHelper console)
     {
@@ -49,9 +47,33 @@ public class SendTests
         // Assert
         Assert.Equal(excpectedResponse, returnedResponse);
     }
+    
 
     [Fact]
-    public async Task SendAsync_GivenCommandwithoutHandler_ShouldThrowHandlerNotFoundException()
+    public async Task SendAsync_GivenRequestCommandWithVoidResponse_ShouldReturnVoidResponse()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        var mockHandlerCommand = Substitute.For<IHandlerCommand<PingCommandVoidReturn>>();
+        mockHandlerCommand.HandleAsync(Arg.Any<PingCommandVoidReturn>()).Returns(Task.CompletedTask);
+        services.AddSingleton(mockHandlerCommand);
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var mediator = new MediatVP.Mediator(serviceProvider);
+
+        // Act
+        var sendTask = mediator.SendAsync(new PingCommandVoidReturn());
+
+        // Assert
+        await Assert.IsAssignableFrom<Task>(sendTask);
+        await sendTask;
+        await mockHandlerCommand.Received(1).HandleAsync(Arg.Any<PingCommandVoidReturn>());
+    }
+
+    [Fact]
+    public async Task SendAsync_GivenCommandWithoutHandler_ShouldThrowHandlerNotFoundException()
     {
         // Arrrange    
         var serviceProvider = Substitute.For<IServiceProvider>();
@@ -60,6 +82,21 @@ public class SendTests
   
         // Act
         var actionSend = () => mediator.SendAsync(new PingCommand());
+        
+        // Assert
+        await Assert.ThrowsAnyAsync<HandlerNotFoundException>(actionSend);
+    }
+
+    [Fact]
+    public async Task SendAsync_GivenRequestCommandWithVoidResponse_ShouldThrowHandlerNotFoundException()
+    {
+        // Arrrange    
+        var serviceProvider = Substitute.For<IServiceProvider>();
+
+        var mediator = new MediatVP.Mediator(serviceProvider);
+  
+        // Act
+        var actionSend = () => mediator.SendAsync(new PingCommandVoidReturn());
         
         // Assert
         await Assert.ThrowsAnyAsync<HandlerNotFoundException>(actionSend);

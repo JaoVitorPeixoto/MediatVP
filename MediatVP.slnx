@@ -1,6 +1,12 @@
 <Solution>
-  <Project Path="MediatVP.Abstraction/MediatVP.Abstraction.csproj" />
-  <Project Path="MediatVP/MediatVP.csproj" />
-  <Project Path="MediatVP.Sample/MediatVP.Sample.csproj" />
-  <Project Path="MediatVP.Tests/MediatVP.Tests.csproj" />
+  <Folder Name="/samples/">
+    <Project Path="samples/MediatVP.Sample/MediatVP.Sample.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/MediatVP/MediatVP.csproj" />
+    <Project Path="src/MediatVP.Abstractions/MediatVP.Abstractions.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/MediatVP.Tests/MediatVP.Tests.csproj" />
+  </Folder>
 </Solution>

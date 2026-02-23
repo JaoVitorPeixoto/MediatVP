@@ -1,5 +1,5 @@
 using System.Reflection;
-using MediatVP.Abstraction;
+using MediatVP.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatVP.Extensions;
@@ -10,14 +10,17 @@ public static class MediatVPExtensions
     {
         services.AddTransient<IMediator, Mediator>();
 
-        var handlerType = typeof(IHandlerCommand<,>);
+        var handlerTypeWithResponse = typeof(IHandlerCommand<,>);
+        var handlerTypeWithoutResponse = typeof(IHandlerCommand<>);
 
         foreach (var assembly in assemblies)
         {
             var handlers = assembly.GetTypes()
                 .Where(type => !type.IsAbstract &&  !type.IsInterface)
                 .SelectMany(x => x.GetInterfaces(), (t, i) => new { Type = t, Interface = i })
-                .Where(ti => ti.Interface.IsGenericType && ti.Interface.GetGenericTypeDefinition() == handlerType);
+                .Where(ti => ti.Interface.IsGenericType &&
+                    (ti.Interface.GetGenericTypeDefinition() == handlerTypeWithResponse ||
+                     ti.Interface.GetGenericTypeDefinition() == handlerTypeWithoutResponse));
 
             foreach (var handler in handlers)
                 services.AddTransient(handler.Interface, handler.Type);

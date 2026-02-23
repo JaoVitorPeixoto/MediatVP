@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../MediatVP.Abstraction/MediatVP.Abstraction.csproj" />
-    <ProjectReference Include="../MediatVP/MediatVP.csproj" />
+    <ProjectReference Include="../../src/MediatVP.Abstractions/MediatVP.Abstractions.csproj" />
+    <ProjectReference Include="../../src/MediatVP/MediatVP.csproj" />
   </ItemGroup>
 
   <ItemGroup>
