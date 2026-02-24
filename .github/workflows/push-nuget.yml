@@ -33,7 +33,7 @@ jobs:
         run: dotnet pack ./src/MediatVP.Abstractions/MediatVP.Abstractions.csproj --configuration Release -o ./dist
 
       - name: Push Packages in Nuget.org
-        run: dotnet nuget push "./dist/*.nupkg" --api-key ${{ secrets.NUGET_TOKEN }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "./dist/*.nupkg" --api-key ${{ secrets.NUGET_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
 
 
