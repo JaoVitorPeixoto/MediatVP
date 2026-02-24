@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
 
     <PackageId>Peixoto.MediatVP</PackageId>
+    <Authors>João Peixoto</Authors>
+    <Copyright>Copyright © 2026 João Peixoto</Copyright>
     <Version>1.0.0</Version>
     <Description>Implementação leve do padrão Mediator para .NET, com suporte a DI e requests assíncronos.</Description>
     <PackageTags>mediator;cqrs;dotnet;dependency-injection;clean;architecture;clean-architecture</PackageTags>

@@ -1,7 +1,10 @@
 using MediatVP.Abstractions;
 using MediatVP.Exceptions;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using NSubstitute;
+
 using Xunit.Abstractions;
 
 namespace MediatVP.Tests.Mediator;
