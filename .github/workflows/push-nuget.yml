@@ -1,0 +1,43 @@
+name: Build and Push project to Nuget.org
+  on:
+    push:
+      branches:
+        - main
+  
+  jobs:
+    build-test-and-deploy:
+      runs-on: ubunto-latest
+
+      steps:
+
+        - name: Get files for branch main
+          uses: actions/checkout@4
+          whit:
+            ref: main
+
+        - name: Set up .NET Core
+          uses: actions/setup-dotnet@v5
+          with:
+            dotnet-version: "10.0.x"
+      
+        - name: Build projects in Release
+          run: dotnet build --configuration Release
+
+        - name: Run Tests from projects
+          run: dotnet test
+
+        - name: Build Pack from Release MediatVP project    
+          run: dotnet pack ./src/MediatVP/MediatVP.csproj --configuration Release
+
+        - name: Build Pack from Release MediatVP.Abstractions project    
+          run: dotnet pack ./src/MediatVP.Abstractions/MediatVP.Abstractions.csproj --configuration Release
+
+        - name: Push Pack MediatVP in Nuget.org
+          run: dotnet nuget push "./src/MediatVP/bin/Release/*.nupkg" ${{ secrets.NUGET_TOKEN }} -s https://api.nuget.org/v3/index.json
+
+        - name: Push Pack MediatVP.Abstractions in Nuget.org
+          run: dotnet nuget push "./src/MediatVP.Abstractions/bin/Release/*.nupkg" ${{ secrets.NUGET_TOKEN }} -s https://api.nuget.org/v3/index.json
+
+
+
+
