@@ -1,108 +1,88 @@
 using MediatVP.Abstractions;
 using MediatVP.Exceptions;
-
+using MediatVP.Tests.Mediator.TestDoubles;
+using MediatVP.Tests.TestDoubles.Common;
 using Microsoft.Extensions.DependencyInjection;
-
-using NSubstitute;
-
-using Xunit.Abstractions;
 
 namespace MediatVP.Tests.Mediator;
 
 public class SendTests
 {
-    private readonly ITestOutputHelper _console;
-
-
-    public record PingCommand : IRequestCommand<string>;
-    public record PingCommandVoidReturn  : IRequestCommand;
-
-    public SendTests(ITestOutputHelper console)
-    {
-        this._console = console;
-    }
-
-
     [Fact]
-    public async Task SendAsync_GivenCommand_ShouldSendHandlerCommandAndReturnCorrectlyResponse()
+    public async Task SendAsync_WithResponseCommand_ShouldReturnHandlerResponse()
     {
-        // Arrange
-        var excpectedResponse = "Pong";       
-
         var services = new ServiceCollection();
+        services.AddSingleton<InvocationTracker>();
+        services.AddTransient<IHandlerCommand<PingCommand, string>, PingHandler>();
 
-        var mockHandlerCommand = Substitute.For<IHandlerCommand<PingCommand, string>>();
-        mockHandlerCommand.HandleAsync(Arg.Any<PingCommand>()).Returns(excpectedResponse);
-        services.AddSingleton(mockHandlerCommand);
+        var mediator = new MediatVP.Mediator(services.BuildServiceProvider());
 
-        var serviceProvider = services.BuildServiceProvider();
+        var response = await mediator.SendAsync(new PingCommand("ping"));
 
-        var mediator = new MediatVP.Mediator(serviceProvider);
-
-
-        // Act
-        var returnedResponse = await mediator.SendAsync(new PingCommand());
-
-        _console.WriteLine("Excpected: " + excpectedResponse);
-
-        _console.WriteLine("Returned: " + returnedResponse);
-        
-        // Assert
-        Assert.Equal(excpectedResponse, returnedResponse);
+        Assert.Equal("pong:ping", response);
     }
-    
 
     [Fact]
-    public async Task SendAsync_GivenRequestCommandWithVoidResponse_ShouldReturnVoidResponse()
+    public async Task SendAsync_WithoutResponseCommand_ShouldExecuteHandlerSuccessfully()
     {
-        // Arrange
         var services = new ServiceCollection();
+        services.AddSingleton<InvocationTracker>();
+        services.AddTransient<IHandlerCommand<PingWithoutResponseCommand>, PingWithoutResponseHandler>();
 
-        var mockHandlerCommand = Substitute.For<IHandlerCommand<PingCommandVoidReturn>>();
-        mockHandlerCommand.HandleAsync(Arg.Any<PingCommandVoidReturn>()).Returns(Task.CompletedTask);
-        services.AddSingleton(mockHandlerCommand);
+        var provider = services.BuildServiceProvider();
+        var mediator = new MediatVP.Mediator(provider);
 
-        var serviceProvider = services.BuildServiceProvider();
+        await mediator.SendAsync(new PingWithoutResponseCommand("ping"));
 
-        var mediator = new MediatVP.Mediator(serviceProvider);
-
-        // Act
-        var sendTask = mediator.SendAsync(new PingCommandVoidReturn());
-
-        // Assert
-        await Assert.IsAssignableFrom<Task>(sendTask);
-        await sendTask;
-        await mockHandlerCommand.Received(1).HandleAsync(Arg.Any<PingCommandVoidReturn>());
+        var tracker = provider.GetRequiredService<InvocationTracker>();
+        Assert.Equal(new[] { "handler:void:ping" }, tracker.Events);
     }
 
     [Fact]
-    public async Task SendAsync_GivenCommandWithoutHandler_ShouldThrowHandlerNotFoundException()
+    public async Task SendAsync_WithResponseCommand_ShouldRunPipelineBehavior()
     {
-        // Arrrange    
-        var serviceProvider = Substitute.For<IServiceProvider>();
+        var services = new ServiceCollection();
+        services.AddSingleton<InvocationTracker>();
+        services.AddTransient<IHandlerCommand<PingCommand, string>, PingHandler>();
+        services.AddTransient<IPipelineBehavior<PingCommand, string>, TrackingBehaviorForResponse>();
 
-        var mediator = new MediatVP.Mediator(serviceProvider);
-  
-        // Act
-        var actionSend = () => mediator.SendAsync(new PingCommand());
-        
-        // Assert
-        await Assert.ThrowsAnyAsync<HandlerNotFoundException>(actionSend);
+        var provider = services.BuildServiceProvider();
+        var mediator = new MediatVP.Mediator(provider);
+
+        var response = await mediator.SendAsync(new PingCommand("pipeline"));
+
+        var tracker = provider.GetRequiredService<InvocationTracker>();
+        Assert.Equal("pong:pipeline", response);
+        Assert.Equal(
+            new[] { "behavior:before:response", "handler:response:pipeline", "behavior:after:response" },
+            tracker.Events);
     }
 
     [Fact]
-    public async Task SendAsync_GivenRequestCommandWithVoidResponse_ShouldThrowHandlerNotFoundException()
+    public async Task SendAsync_WithoutResponseCommand_ShouldRunPipelineBehaviorThroughUnit()
     {
-        // Arrrange    
-        var serviceProvider = Substitute.For<IServiceProvider>();
+        var services = new ServiceCollection();
+        services.AddSingleton<InvocationTracker>();
+        services.AddTransient<IHandlerCommand<PingWithoutResponseCommand>, PingWithoutResponseHandler>();
+        services.AddTransient<IPipelineBehavior<PingWithoutResponseCommand, Unit>, TrackingBehaviorForUnit>();
 
-        var mediator = new MediatVP.Mediator(serviceProvider);
-  
-        // Act
-        var actionSend = () => mediator.SendAsync(new PingCommandVoidReturn());
-        
-        // Assert
-        await Assert.ThrowsAnyAsync<HandlerNotFoundException>(actionSend);
+        var provider = services.BuildServiceProvider();
+        var mediator = new MediatVP.Mediator(provider);
+
+        await mediator.SendAsync(new PingWithoutResponseCommand("pipeline"));
+
+        var tracker = provider.GetRequiredService<InvocationTracker>();
+        Assert.Equal(
+            new[] { "behavior:before:unit", "handler:void:pipeline", "behavior:after:unit" },
+            tracker.Events);
     }
 
+    [Fact]
+    public async Task SendAsync_WithoutRegisteredHandler_ShouldThrowHandlerNotFoundException()
+    {
+        var mediator = new MediatVP.Mediator(new ServiceCollection().BuildServiceProvider());
+
+        await Assert.ThrowsAsync<HandlerNotFoundException>(() => mediator.SendAsync(new PingCommand("missing")));
+        await Assert.ThrowsAsync<HandlerNotFoundException>(() => mediator.SendAsync(new PingWithoutResponseCommand("missing")));
+    }
 }
