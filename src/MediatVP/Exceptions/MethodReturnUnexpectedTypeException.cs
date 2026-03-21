@@ -2,6 +2,9 @@ using System;
 
 namespace MediatVP.Exceptions;
 
+/// <summary>
+/// Exception thrown when a reflected handler method returns an unexpected runtime type.
+/// </summary>
 public class MethodReturnUnexpectedTypeException : Exception
 {
     internal object? Result;

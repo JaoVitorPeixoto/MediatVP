@@ -2,6 +2,9 @@ using System;
 
 namespace MediatVP.Exceptions;
 
+/// <summary>
+/// Exception thrown when the expected handler method cannot be located by reflection.
+/// </summary>
 public class MethodNotFoundForHandlerException : Exception
 {
     internal Type HandlerType;
